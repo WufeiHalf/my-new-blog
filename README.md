@@ -96,3 +96,5 @@ echo "[deploy] done."
 ```
 
 就会拉取最新仓库内容并重新生成整站静态文件。后续也可以通过 GitHub Webhook 或 CI/CD（如 GitHub Actions）来自动触发这个脚本，实现全自动部署。
+
+（第二次测试：域名反代 webhook 链路。）
