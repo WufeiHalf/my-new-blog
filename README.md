@@ -108,3 +108,5 @@ echo "[deploy] done."
 （容器挂载 /opt/blog 后再次测试自动部署）
 
 （shebang 改为 sh 后再次测试自动部署）
+
+（最终验证：容器安装 git 后自动部署）
