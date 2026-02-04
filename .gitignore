@@ -1,0 +1,9 @@
+node_modules/
+public/
+.deploy*/
+.DS_Store
+Thumbs.db
+.npmrc
+.env*
+.idea/
+.vscode/
