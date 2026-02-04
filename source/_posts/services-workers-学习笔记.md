@@ -1,5 +1,5 @@
 ---
-title: ervice Worker 学习笔记
+title: service Worker 学习笔记
 author: blog-author
 date: 2026-02-03 20:30:00
 categories:
