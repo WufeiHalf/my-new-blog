@@ -1,0 +1,17 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# 安装部署脚本所需的 git
+RUN apk add --no-cache git
+
+# 复制 webhook 服务脚本
+COPY webhook-server.js /app/webhook-server.js
+
+# 容器内部监听端口
+EXPOSE 9001
+
+ENV PORT=9001
+ENV WEBHOOK_SECRET=wf-blog-webhook-secret-20260204
+
+CMD ["node", "/app/webhook-server.js"]
