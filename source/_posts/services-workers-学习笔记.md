@@ -1,7 +1,7 @@
 ---
 title: service Worker 学习笔记
 author: blog-author
-date: 2026-02-03 20:30:00
+date: 2026-02-04 14:40:00
 categories:
 - 前端相关
 
