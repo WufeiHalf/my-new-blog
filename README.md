@@ -100,3 +100,5 @@ echo "[deploy] done."
 （第二次测试：域名反代 webhook 链路。）
 
 （第三次测试：1Panel 管理 github-hook 站点后推送。）
+
+（最终测试：自动部署链路验证）
