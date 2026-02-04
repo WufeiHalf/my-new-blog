@@ -104,3 +104,5 @@ echo "[deploy] done."
 （最终测试：自动部署链路验证）
 
 （容器方案测试：github webhook 自动部署）
+
+（容器挂载 /opt/blog 后再次测试自动部署）
