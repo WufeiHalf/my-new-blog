@@ -1,3 +1,4 @@
+---
 title: 在这台服务器上折腾 Hexo + Aurora 的记录
 author: blog-author
 date: 2026-02-03 20:30:00

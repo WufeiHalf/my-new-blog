@@ -1,3 +1,4 @@
+---
 title: Home Assistant + OpenClaw
 author: blog-author
 date: 2026-02-03 08:35:11
