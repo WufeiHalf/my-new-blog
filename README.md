@@ -106,3 +106,5 @@ echo "[deploy] done."
 （容器方案测试：github webhook 自动部署）
 
 （容器挂载 /opt/blog 后再次测试自动部署）
+
+（shebang 改为 sh 后再次测试自动部署）
