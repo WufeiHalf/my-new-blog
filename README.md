@@ -102,3 +102,5 @@ echo "[deploy] done."
 （第三次测试：1Panel 管理 github-hook 站点后推送。）
 
 （最终测试：自动部署链路验证）
+
+（容器方案测试：github webhook 自动部署）
