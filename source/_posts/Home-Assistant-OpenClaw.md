@@ -3,7 +3,7 @@ title: Home Assistant + OpenClaw
 author: blog-author
 date: 2026-02-03 08:35:11
 categories:
-  - 服务器
+  - OPENCLAW
 tags:
   - AI
   - openclaw

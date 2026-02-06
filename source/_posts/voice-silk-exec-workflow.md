@@ -2,7 +2,7 @@
 title: 语音指令执行链路实战：SILK V3 转写 + 指令落地
 date: 2026-02-05 19:00:00
 categories:
-  - AI
+  - OPENCLAW
 tags:
   - OpenClaw
   - 代比瞎折腾

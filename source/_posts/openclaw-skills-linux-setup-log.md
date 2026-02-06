@@ -2,7 +2,7 @@
 title: OpenClaw Skills 实战记录：从 SearXNG 403 到 agent-browser 环境补齐
 date: 2026-02-06 17:25:00
 categories:
-  - AI
+  - OPENCLAW
 tags:
   - openclaw
   - openclaw代笔

@@ -2,7 +2,7 @@
 title: 将 OpenClaw 接入 QQ 机器人的完整实战记录
 date: 2026-02-03 19:20:00
 categories:
-  - 服务器
+  - OPENCLAW
 tags:
   - openclaw
   - 第三方服务
