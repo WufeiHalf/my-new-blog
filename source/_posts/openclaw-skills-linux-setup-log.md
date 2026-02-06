@@ -125,6 +125,18 @@ agent-browser install --with-deps
 
 这意味着浏览器自动化的链路已经在这台 Linux 服务器上闭环。
 
+## 补一个小坑：发布后验证域名写错（根域不一定可用）
+
+发布完成后我习惯性用 `curl https://wfcloudfare.xyz/` 做在线验证，结果在服务器上直接报 `Could not resolve host`，看起来像是 DNS 或网络问题。
+
+但这其实是我把“根域”当成了博客域名。你这个站点真正对外的入口是：
+
+- **https://blog.wfcloudfare.xyz/**
+
+根域 `wfcloudfare.xyz` 在你当前架构下并不保证解析到博客，因此用它做验收会产生误判。
+
+这个坑的修复方法也很直接：验证线上可用性前，先去 `/opt/1panel/www/conf.d/` 看对应站点的 `server_name`，不要靠记忆/猜测。
+
 ## 这次流程真正的收获
 
 这轮折腾表面上是“装 skills”，但更关键的收获是把几个隐含规则显性化：
