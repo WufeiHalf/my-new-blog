@@ -1,5 +1,5 @@
 ---
-title: "React 学习 D02：render 纯计算与 useEffect（dependency array 与 cleanup）"
+title: "学习 React Day2 积累：useEffect"
 date: 2026-02-25 13:21:00
 categories:
   - 前端相关
@@ -11,32 +11,113 @@ tags:
   - 学习笔记
 ---
 
-## 写在前面：我在 D02 真正想搞清楚的边界
+## 写在前面：我今天想把边界讲清楚
 
-我把 D02 的学习目标压缩成一句话：让 **render 保持纯计算**，同时用 **useEffect** 去处理“与外部系统同步”的事情。紧接着我发现，只要这条边界一清晰，异步请求、定时器、事件监听这些东西就不再是“写着写着就乱了”的黑箱，而是有明确时序与清理规则的可控系统。
+我今天反复在确认的一件事是：**render 是纯计算**。组件函数执行时，它只应该根据 props/state 算出 JSX（也就是 UI 描述），所以我不应该在 render 路径里做任何 I/O，比如 http 请求、订阅、定时器、读写存储、或者直接改 DOM。紧接着对应的另一半是：**useEffect 是“与外部系统同步”的机制**，它在组件渲染提交到屏幕之后运行，用来做那些 React 渲染流程不直接管理的事情。
 
-这里的“外部系统”指的是不受 React 渲染流程直接管理的世界，例如 HTTP 请求、定时器（setTimeout / setInterval）、浏览器原生事件监听、以及需要手动读写的存储或非 React 管理的 DOM。更有趣的是，React 的渲染过程本质上只负责把 props/state 映射成 UI 描述，因此任何 I/O 都会把渲染从“计算 UI”变成“推动外界变化”，这会让渲染次数的变化直接引爆重复请求、重复订阅与竞态问题。
+这里的“外部系统”指的是不受 react 渲染流程直接管理的内容，比如说 http 请求，定时器，浏览器的原生事件等。与外部系统同步其实就是，react 处理完页面展示后，再处理 react 之外的内容同步。
 
-## useEffect 到底是什么：它同步的是“外部系统”
+## useEffect 的依赖数组：别当优化开关，当成规则
 
-`useEffect` 是 React 官方提供的 Hook，用来在组件渲染提交到屏幕之后执行副作用，从而把组件状态与外部系统的状态对齐。紧接着这就意味着，effect 不是“写逻辑的地方”，而是“写同步规则的地方”：当哪些输入变化时，需要重新同步外界；当同步建立了外部影响时，需要如何撤销。
+useEffect 有一个依赖数组，用来标记监听的对象。我今天对它的记法是按“规则”背下来，而不是当成“让它少跑一点”的优化按钮：不写依赖数组的时候，它会在每次渲染后触发；写 `[]` 表示首次渲染的时候触发，结束（卸载）的时候销毁；指定值表示指定值变更的时候触发。紧接着如果我在 effect 里读取了某个 state/props，却没把它写进依赖数组，就会读到旧值，表现出来就是那种“看起来像随机 bug”的 UI 不更新。
 
-在实际使用上，`useEffect(effectFn, deps)` 只有两个参数。第一个参数 `effectFn` 是执行副作用的函数，它可以返回一个 **cleanup function**，用于撤销副作用；第二个参数是 **dependency array**，用于声明 effect 依赖哪些值。
+另一个我觉得很关键的点是开发环境 StrictMode：effect 可能会触发两次，这是为了暴露“不可重复执行/不可清理”的副作用写法。所以我写 effect 的标准必须是 **可重复执行且可清理**。
 
-## dependency array：它不是优化开关，而是重跑规则
+## useEffect 的 return：是 cleanup，不是 Promise
 
-dependency array 的语义必须被当成规则来理解，因为它直接决定了 effect 何时运行、何时重跑、何时清理。紧接着最常见的混乱来源，就是把它当成“让 effect 少跑一点”的随手开关，或者为了“只跑一次”硬写 `[]`，却在 effect 里读取会变化的 props/state。
+useEffect 有两个参数，第一个参数是一个 func，用来表达需要执行的操作逻辑。这个 func 需要 return 的东西，其实是 cleanup，用来在销毁组件的时候触发，或者在依赖变化导致 effect 重跑之前先触发。
 
-它的基本行为可以这样记：不传 deps 的时候，effect 会在每次渲染提交后运行；传 `[]` 的时候，effect 在首次挂载后运行一次，并在卸载时执行 cleanup；传 `[x, y]` 的时候，effect 在首次挂载后运行，并在 `x` 或 `y` 变化后重新运行，而且每次重新运行前都会先执行上一次的 cleanup。
+我一开始会把 return 理解成“return 一个 abort 状态来表达放弃请求”，但更准确的说法是：return 的不是状态，而是 **撤销这次副作用的函数**。紧接着这也解释了为什么 effect 的 func 不能是 async 的：async 会隐式返回 Promise，和 React 期待的 cleanup function 冲突。如果非要用 async，就在内部定义一个 async 方法并且调用。
 
-## effect 的 return：返回的是 cleanup，不是 Promise，也不是“abort 状态”
+## 我今天的代码示例：三态 + Retry + 可复现 error + 可取消请求
 
-我一开始容易把 `return` 理解成“返回某种状态来中止请求”，但更准确的说法是：`effectFn` 返回的东西必须是 **cleanup function**，它会在组件卸载或依赖变化导致 effect 重跑之前被调用。紧接着这就解释了为什么 `effectFn` 不能直接写成 `async`：如果它是 `async`，就会隐式返回 Promise，这与 React 期待的 cleanup function 冲突。
+我在 sandbox 里做了一个很具体的闭环：页面有 **loading / success / error** 三态，error 里有 Retry；同时我加了一个 `Mock fail` 的开关，把失败路径做成可复现；更重要的是，我让请求可取消，这样组件卸载或依赖变化时不会出现“旧请求回来把新状态覆盖掉”的污染。
 
-需要异步逻辑时，常见写法是在 effect 内部定义并调用一个 `async function`，或者直接处理 Promise 链；与此同时，cleanup 用来撤销“这次 effect 建立的外部影响”。
+下面是我在 `RemoteTodos` 里的核心 effect。它把“同步外界数据”的入口收敛到一条规则里：依赖变化就重跑，重跑之前先 cleanup。
 
-## AbortController：它在真实项目里很常见
+```tsx
+useEffect(() => {
+  setStatus('loading')
 
-`AbortController` 的价值在于把“取消请求”变成可执行的规则，尤其在组件快速切换、参数频繁变化或并发请求时，它能把竞态问题从“偶发 bug”变成“确定性的取消”。紧接着正确的用法是：每次 effect 执行都创建一套新的 controller，并在 cleanup 里调用 `abort()`，从而保证旧请求不会在未来某个时间点回写错误的状态。
+  const request = loadTodos({ query, shouldFail })
 
-更有趣的是，在统一封装层（例如项目里的 `http.ts`）把“可取消请求”抽象成一个 `CancelableRequest` 往往更贴近真实工程，因为它把取消、超时、错误分类与重试策略收敛成可复用的接口，使得组件层只需要声明同步规则而不需要重复造轮子。
+  request.promise
+    .then((list) => {
+      setTodos(list)
+      setStatus('success')
+    })
+    .catch((err) => {
+      if (isAbortError(err)) {
+        return
+      }
+      console.error(err)
+      setStatus('error')
+    })
+
+  return () => {
+    request.cancel()
+  }
+}, [query, retryToken, shouldFail])
+```
+
+这里我刻意把 `query`、`retryToken`、`shouldFail` 全写进依赖数组，因为 effect 里确实读取了它们。紧接着 Retry 我也没“直接绕开 effect 再发一次请求”，而是让 `retryToken` 自增，从而让 effect 按同一套规则再执行一遍：
+
+```tsx
+onRetry={() => setRetryToken((x) => x + 1)}
+```
+
+## AbortController：避免复用被 abort 的 controller
+
+如果需要使用 AbortController，需要写到 useEffect 里，需要避免第一次执行过程中出现的互相污染，比如再次复用了已经被 abort 的 controller。我这次为了把它做得更像工程代码，就把“可取消请求”抽成一个小工具：每次请求创建新的 controller，然后把 cancel 交给 cleanup。
+
+```ts
+export type CancelableRequest<T> = {
+  promise: Promise<T>
+  cancel: () => void
+}
+
+export function createCancelableRequest<T>(
+  runner: (signal: AbortSignal) => Promise<T>
+): CancelableRequest<T> {
+  const controller = new AbortController()
+
+  return {
+    promise: Promise.resolve().then(() => runner(controller.signal)),
+    cancel: () => controller.abort(),
+  }
+}
+```
+
+同时我把 `delay` 也做成支持 `AbortSignal`，这样取消能在“模拟网络延迟”的阶段生效：
+
+```ts
+export function delay(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException('The operation was aborted.', 'AbortError'))
+      return
+    }
+
+    const timerId = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+
+    function onAbort() {
+      clearTimeout(timerId)
+      signal.removeEventListener('abort', onAbort)
+      reject(new DOMException('The operation was aborted.', 'AbortError'))
+    }
+
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+}
+```
+
+## AbortController 在真实开发里有没有用？
+
+我今天的原话疑问是：这个 AbortController，不清楚在真实开发中是否有应用场景。紧接着我现在能给自己的一个回答是：当你有“参数频繁变化”的请求（比如搜索框 query）或者“组件很容易卸载/重建”的页面（路由切换、Tab 切换），**可取消** 能把竞态问题从偶发 bug 变成可解释的同步规则。
+
+## 我用来检查自己是不是学会了
+
+我检查时只看可观测行为与可解释性：页面是否覆盖 loading/success/error 三态，重试是否会把状态回到 loading 并重新请求，以及请求是否可取消（或者我能明确解释为什么无需取消）。
