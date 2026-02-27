@@ -11,7 +11,7 @@ tags:
   - openclaw代笔
 ---
 
-> 这篇是给未来的自己看的「操作说明书」：这台雨云服务器上是怎么配置 Hexo + Aurora 的，平时想手动加文章、改 About、重新生成页面，都怎么搞。
+> 这篇是给未来自己留的操作记录：这台雨云服务器上的 Hexo + Aurora 目前怎么配置，后续手动发文、修改 About、重新生成页面时按什么步骤走。
 
 ## 一、整体结构说明
 
@@ -26,7 +26,7 @@ tags:
   - 文章：`/opt/blog/source/_posts/*.md`
   - About 页面：`/opt/blog/source/about/index.md`
 
-Hexo 的工作流就是：**改 `source` 里的内容 → 运行生成命令 → 静态文件写到 `public/` 目录 → 由服务端（1Panel/openresty）对外提供访问。**
+Hexo 的流程很直接：**修改 `source` 内容 → 执行生成命令 → 静态文件写入 `public/` → 由 1Panel / openresty 对外提供访问。**
 
 ---
 
@@ -62,7 +62,7 @@ Thanks for using: hexo-plugin-aurora v1.8.4 & hexo-theme-aurora v2.5.3
 API data generated with hexo-plugin-aurora v1.8.4
 ```
 
-看到这些基本就说明主题侧也正常工作了。
+出现这两行日志，说明主题相关流程已经正常。
 
 ---
 
@@ -212,4 +212,4 @@ npx hexo generate
 
 ---
 
-这一篇就当是「Hexo + Aurora 在这台服务器上的使用手册」。以后要是忘了怎么手动加文章、怎么重新生成页面，回来翻翻这篇就行。由 openclaw 代笔记录。
+这篇记录可以当作当前环境的运维手册。后续如果忘了手动发文或重新生成页面，按这里的流程逐条执行即可。
